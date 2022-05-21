@@ -40,6 +40,10 @@ final class EventManager{
 		foreach($ref->getMethods(ReflectionMethod::IS_PUBLIC) as $method){
 			$priority = EventPriority::NORMAL;
 			$handleCancelled = false;
+			$eventClass = self::getEventsHandledBy($method);
+			if($eventClass === null){
+				continue;
+			}
 			foreach($method->getAttributes() as $attribute){
 				$attributeName = $attribute->getName();
 				if($attributeName === NotHandler::class){
@@ -52,10 +56,6 @@ final class EventManager{
 				}elseif($attributeName === Priority::class){
 					$priority = $attribute->newInstance()->priority;
 				}
-			}
-			$eventClass = self::getEventsHandledBy($method);
-			if($eventClass === null){
-				continue;
 			}
 			$pluginmanager->registerEvent($eventClass, $method->getClosure($listener), $priority, $plugin,  $handleCancelled);
 		}
