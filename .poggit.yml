@@ -1,0 +1,9 @@
+--- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/sky-min/EventAttribute
+branches:
+- master
+projects:
+  EventAttribute:
+    path: ""
+    model: virion
+    type: library
+...
