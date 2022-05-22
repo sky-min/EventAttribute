@@ -49,7 +49,7 @@ final class Priority{
 		if($key === 'priority'){
 			return $this->priority;
 		}
-		trigger_error("Undefined property $name or method $method_name");
+		trigger_error('Undefined property' . $key);
 	}
 
 }

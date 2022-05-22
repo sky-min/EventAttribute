@@ -37,7 +37,7 @@ final class HandleCancelled{
 		if($key === 'handleCancelled'){
 			return $this->handleCancelled;
 		}
-		trigger_error("Undefined property $name or method $method_name");
+		trigger_error('Undefined property ' . $key);
 	}
 
 }
