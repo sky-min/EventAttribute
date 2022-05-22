@@ -37,10 +37,8 @@ use pocketmine\event\{
 	EventPriority,
 	Cancellable
 };
-use \ReflectionClass;
-use \ReflectionMethod;
-
-use function is_a;
+use ReflectionClass;
+use ReflectionMethod;
 
 final class EventManager{
 
@@ -58,49 +56,47 @@ final class EventManager{
 			self::$pluginmanager = Server::getInstance()->getPluginManager();
 		}
 		$pluginmanager = self::$pluginmanager;
+
 		$ref = new ReflectionClass($listener::class);
 		foreach($ref->getMethods(ReflectionMethod::IS_PUBLIC) as $method){
-			$priority = EventPriority::NORMAL;
-			$handleCancelled = false;
-			$eventClass = self::getEventsHandledBy($method);
-			if($eventClass === null){
+			if($method->isStatic()){
 				continue;
 			}
+
+			$parameters = $method->getParameters();
+			if(count($parameters) !== 1){
+				continue;
+			}
+			$paramType = $parameters[0]->getType();
+			if(!$paramType instanceof \ReflectionNamedType || $paramType->isBuiltin()){
+				continue;
+			}
+			$eventClass = new ReflectionClass($paramType->getName());
+			if(!$eventClass->isSubclassOf(Event::class)){
+				continue;
+			}
+
+			$eventClassName = $eventClass->getName();
+			$priority = EventPriority::NORMAL;
+			$handleCancelled = false;
+
 			foreach($method->getAttributes() as $attribute){
 				$attributeName = $attribute->getName();
 				if($attributeName === NotHandler::class){
 					continue 2;
-				}if($attributeName === HandleCancelled::class){
-					if(!is_a($eventClass, Cancellable::class, true)){
-						throw new PluginException('non-cancellable event of type' . $eventClass);
+				}
+				if($attributeName === HandleCancelled::class){
+					if(!$eventClass->isSubclassOf(Cancellable::class)){
+						throw new PluginException('non-cancellable event of type' . $eventClassName);
 					}
 					$handleCancelled = $attribute->newInstance()->handleCancelled;
 				}elseif($attributeName === Priority::class){
 					$priority = $attribute->newInstance()->priority;
 				}
 			}
-			$pluginmanager->registerEvent($eventClass, $method->getClosure($listener), $priority, $plugin,  $handleCancelled);
-		}
-	}
 
-	private static function getEventsHandledBy(ReflectionMethod $method) : ?string{
-		if($method->isStatic() || !$method->getDeclaringClass()->implementsInterface(Listener::class)){
-			return null;
+			$pluginmanager->registerEvent($eventClassName, $method->getClosure($listener), $priority, $plugin,  $handleCancelled);
 		}
-		$parameters = $method->getParameters();
-		if(count($parameters) !== 1){
-			return null;
-		}
-		$paramType = $parameters[0]->getType();
-		if(!$paramType instanceof \ReflectionNamedType || $paramType->isBuiltin()){
-			return null;
-		}
-		$paramClass = $paramType->getName();
-		$eventClass = new ReflectionClass($paramClass);
-		if(!$eventClass->isSubclassOf(Event::class)){
-			return null;
-		}
-		return $eventClass->getName();
 	}
 
 }
