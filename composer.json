@@ -1,0 +1,17 @@
+{
+  "name": "skymin/EventAttribute",
+  "description": "pmmp event attribute",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.0",
+  },
+  "require-dev": {
+    "pocketmine/pocketmine-mp": ">=4.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "skymin\\event\\": "src/"
+    }
+  }
+}
