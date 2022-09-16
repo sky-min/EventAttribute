@@ -42,20 +42,18 @@ use ReflectionMethod;
 
 final class EventManager{
 
-	private static ?PluginManager $pluginmanager = null;
-
 	private function __construct(){
-		//Noop
+		//NOOP
 	}
 
-	public static function register(Listener $listener, Plugin $plugin) : void{
+	public static function register(object $listener, Plugin $plugin) : void{
 		if(!$plugin->isEnabled()){
 			throw new PluginException('Plugin attempted to register ' . $listener::class . ' while not enabled');
 		}
-		if(self::$pluginmanager === null){
-			self::$pluginmanager = Server::getInstance()->getPluginManager();
+		static $pluginmanager = null;
+		if($pluginmanager === null){
+			$pluginmanager = Server::getInstance()->getPluginManager();
 		}
-		$pluginmanager = self::$pluginmanager;
 
 		$ref = new ReflectionClass($listener::class);
 		foreach($ref->getMethods(ReflectionMethod::IS_PUBLIC) as $method){
@@ -77,25 +75,24 @@ final class EventManager{
 			}
 
 			$eventClassName = $eventClass->getName();
-			$priority = EventPriority::NORMAL;
-			$handleCancelled = false;
 
 			foreach($method->getAttributes() as $attribute){
-				$attributeName = $attribute->getName();
-				if($attributeName === NotHandler::class){
-					continue 2;
+				if($attribute->getName() !== EventHandler::class){
+					continue;
 				}
-				if($attributeName === HandleCancelled::class){
-					if(!$eventClass->isSubclassOf(Cancellable::class)){
-						throw new PluginException('non-cancellable event of type' . $eventClassName);
-					}
-					$handleCancelled = $attribute->newInstance()->handleCancelled;
-				}elseif($attributeName === Priority::class){
-					$priority = $attribute->newInstance()->priority;
+				$handler = $attribute->newInstance();
+				$handleCancelled = $handler->isHandleCancelled();
+				if($handleCancelled && !$eventClass->isSubclassOf(Cancellable::class)){
+					throw new PluginException('non-cancellable event of type' . $eventClassName);
 				}
+				$pluginmanager->registerEvent(
+					$eventClassName,
+					$method->getClosure($listener),
+					$handler->getPriority(),
+					$plugin,
+					$handleCancelled
+				);
 			}
-
-			$pluginmanager->registerEvent($eventClassName, $method->getClosure($listener), $priority, $plugin,  $handleCancelled);
 		}
 	}
 
