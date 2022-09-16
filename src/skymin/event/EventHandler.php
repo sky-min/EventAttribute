@@ -40,8 +40,8 @@ final class EventHandler{
 		private bool $handleCancelled = false
 	){
 		if(!in_array($priority, EventPriority::ALL, true)){
-            throw new \LogicException("Invalid event priority");
-        }
+			throw new \LogicException("Invalid event priority");
+		}
 		$this->priority = $priority;
 	}
 
