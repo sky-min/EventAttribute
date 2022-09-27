@@ -11,26 +11,27 @@ delcare(strict_types = 1);
 
 namespace example;
 
-use pocketmine\event\Listener;
 use pocketmine\evenr\EventPriority;
 use pocketmine\event\player\PlayerChatEvent;
 
-use skymin\event\{Priority, HandleCancelled, NotHandler};
+use skymin\event\EventHandler;
 
-final class ExampleListener implements Listener{
+final class ExampleListener {
 
-    #[HandleCancelled]
-    #[Priority(EventPriority::HIGHEST)]
+    #[EventHandler(EventPriority::HIGHEST)]
     public function onChat(PlayerChatEvent $event) : void{
         //...
     }
 
-    #[HandleCancelled, Priority(EventPriority::MONITOR)]
+    #[EventHandler(
+    	EventPriority::MONITOR,
+    	true
+    )]
     public function doChat(PlayerChatEvent $event) : void{
         //...
     }
 
-    #[NotHandler]
+	//Event is not registered without the EventHandler attribute.
     public function chat(PlayerChatEvent $event) : void{
         //...
     }
