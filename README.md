@@ -31,7 +31,7 @@ final class ExampleListener {
         //...
     }
 
-	//Event is not registered without the EventHandler attribute.
+    //Event is not registered without the EventHandler attribute.
     public function chat(PlayerChatEvent $event) : void{
         //...
     }
