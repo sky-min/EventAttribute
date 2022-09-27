@@ -29,27 +29,28 @@ use Attribute;
 use pocketmine\event\EventPriority;
 
 use function in_array;
-use function trigger_error;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-final class Priority{
+final class EventHandler{
 
 	private int $priority;
 
 	public function __construct(
-		int $priority = EventPriority::NORMAL
+		int $priority = EventPriority::NORMAL,
+		private bool $handleCancelled = false
 	){
 		if(!in_array($priority, EventPriority::ALL, true)){
-			$priority = EventPriority::NORMAL;
+			throw new \LogicException("Invalid event priority");
 		}
 		$this->priority = $priority;
 	}
 
-	public function __get(string $key) : int{
-		if($key === 'priority'){
-			return $this->priority;
-		}
-		trigger_error('Undefined property' . $key);
+	public function getPriority() : int{
+		return $this->priority;
+	}
+
+	public function isHandleCancelled() : bool{
+		return $this->handleCancelled;
 	}
 
 }
